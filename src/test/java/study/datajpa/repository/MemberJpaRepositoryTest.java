@@ -98,4 +98,22 @@ class MemberJpaRepositoryTest {
 		assertThat(result.get(2).getUsername()).isEqualTo("CCC");
 		assertThat(totalCount).isEqualTo(5);
 	}
+
+	@Test
+	public void bulkUpdate() {
+		Member m1 = new Member("member1", 10);
+		Member m2 = new Member("member2", 19);
+		Member m3 = new Member("member3", 20);
+		Member m4 = new Member("member4", 21);
+		Member m5 = new Member("member5", 40);
+		memberJpaRepository.save(m1);
+		memberJpaRepository.save(m2);
+		memberJpaRepository.save(m3);
+		memberJpaRepository.save(m4);
+		memberJpaRepository.save(m5);
+
+		int resultCount = memberJpaRepository.bulkAgePlus(20);
+
+		assertThat(resultCount).isEqualTo(3);
+	}
 }

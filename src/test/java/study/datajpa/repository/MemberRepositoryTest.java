@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,6 +12,8 @@ import study.datajpa.dto.MemberDTO;
 import study.datajpa.entity.Member;
 import study.datajpa.entity.Team;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import java.util.List;
 import java.util.Optional;
 
@@ -29,6 +30,9 @@ class MemberRepositoryTest {
 
 	@Autowired
 	TeamRepository teamRepository;
+
+	@PersistenceContext
+	EntityManager em;
 
 	@Test
 	public void memberTest() {
@@ -188,5 +192,44 @@ class MemberRepositoryTest {
 //		assertThat(result.getContent().get(0).getUsername()).isEqualTo("BBB");
 //		assertThat(result.getContent().get(1).getUsername()).isEqualTo("AAA");
 //		assertThat(result.getTotalElements()).isEqualTo(5);
+	}
+
+	@Test
+	public void bulkUpdate() {
+		memberRepository.save(new Member("member1", 10));
+		memberRepository.save(new Member("member2", 19));
+		memberRepository.save(new Member("member3", 20));
+		memberRepository.save(new Member("member4", 21));
+		memberRepository.save(new Member("member5", 40));
+
+		int resultCount = memberRepository.bulkAgePlus(20);
+		assertThat(resultCount).isEqualTo(3);
+
+		Optional<Member> findMember = memberRepository.findOptionalByUsername("member5");
+		assertThat(findMember.get().getAge()).isEqualTo(41);
+	}
+
+	@Test
+	public void findMemberLazy() {
+		// Given
+		Team teamA = new Team("teamA");
+		Team teamB = new Team("teamB");
+
+		teamRepository.save(teamA);
+		teamRepository.save(teamB);
+		memberRepository.save(new Member("member1", 10, teamA));
+		memberRepository.save(new Member("member2", 20, teamB));
+
+		em.flush();
+		em.clear();
+
+		// When
+		List<Member> members = memberRepository.findAll();
+
+		// Then
+		for (Member member : members) {
+			System.out.println("member = " + member.getUsername());
+			System.out.println("member's team = " + member.getTeam().getName());
+		}
 	}
 }
