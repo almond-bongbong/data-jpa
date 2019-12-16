@@ -255,4 +255,11 @@ class MemberRepositoryTest {
 
 		List<Member> members = memberRepository.findLockByUsername("member1");
 	}
+
+	@Test
+	public void callCustom() {
+		List<Member> members = memberRepository.findMemberCustom();
+
+		assertThat(members).isEmpty();
+	}
 }
